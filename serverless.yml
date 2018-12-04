@@ -1,0 +1,17 @@
+
+service: serverless-image-recognition
+
+plugins:
+  # - serverless-offline 
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+
+functions:
+  tweet:
+    handler: handler.tweet
+    events:
+      - http:
+          method: get
+          path: /tweet

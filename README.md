@@ -20,6 +20,8 @@ When a user tweets at the bot: `@YourBotName, what’s in this image?` The bot s
 - The two included files: `./handler.js` and `./serverless.yml` provide some starter code to tweet "Hello World" from a twitter bot.
 - https://serverless.com/framework/docs/providers/aws/guide/intro/
 - Twitter documentation: https://developer.twitter.com/en/docs/basics/apps
+- AWS s3 javascript reference: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html
+- AWS Rekognition reference: https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Rekognition.html
 
 ## Expectations:
 - Completion of this entire exercise can be difficult, Please do your best to go as far as you can

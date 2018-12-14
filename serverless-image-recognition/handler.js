@@ -22,3 +22,14 @@ module.exports.tweet = async (event, context) => {
         }),
     };
 };
+
+module.exports.verify = async (event, context) => {
+    await statusUpdate("Verified at  " + new Date());
+
+    return {
+        statusCode: 200,
+        body: JSON.stringify({
+            message: 'Verified woot woot',
+        }),
+    };
+}

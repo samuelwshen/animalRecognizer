@@ -13,12 +13,12 @@ function statusUpdate(status = 'Hello World!') {
 }
 
 module.exports.tweet = async (event, context) => {
-    await statusUpdate();
+    await statusUpdate("Hello world " + new Date());
 
     return {
         statusCode: 200,
         body: JSON.stringify({
-            message: 'Tweeted Hello World',
+            message: 'Tweeted hello world!',
         }),
     };
 };

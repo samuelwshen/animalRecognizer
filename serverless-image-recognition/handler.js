@@ -1,6 +1,7 @@
 const Twitter = require('twitter');
 const config = require('./config');
 const axios = require('axios');
+const crypto = require('crypto')
 
 const twitterClient = new Twitter(config);
 
@@ -24,12 +25,16 @@ module.exports.tweet = async (event, context) => {
 };
 
 module.exports.verify = async (event, context) => {
-    await statusUpdate("Verified at  " + new Date());
+	crc_token = String(event.crc_token)
+	var consumer_secret = 'V5a2slYwndbirf25ng2gtDq5vAPk2yW2mLdxKX5pWW27tkwFBi';
 
-    return {
-        statusCode: 200,
-        body: JSON.stringify({
-            message: 'Verified woot woot',
-        }),
-    };
+	hmac = crypto.createHmac('sha256', consumer_secret).update(crc_token).digest('base64')
+
+	return {
+		statusCode: 200,
+		response_token: hmac,
+	};
 }
+
+
+

@@ -21,10 +21,17 @@ function statusUpdate(statuss = 'Hello World!') {
 module.exports.tweet = async (event, context) => {
     //await statusUpdate("Hello world " + new Date());
     var parsed = JSON.parse(event.body);
+    
+    //if there's a photo in the tweet
+    if (parsed['tweet_create_events'][0]['entities']['media'][0]['type'] === 'photo') {
+        console.log("In the loop")
+        
+        console.log(parsed['tweet_create_events'][0]['entities']['media'][0]['media_url_https'])
+    }
+    console.log(event)
 	if (parsed['tweet_create_events']) {
-		var user = parsed['tweet_create_events'][0]['user'];
-		console.log(String(user))
-		var result = await statusUpdate("Hellooooo ")
+		var user = parsed['tweet_create_events'][0]['user']
+		var result = await statusUpdate("Hellooooo00000 " + user['screen_name'])
 	}
     return {
         statusCode: 200,
@@ -33,6 +40,7 @@ module.exports.tweet = async (event, context) => {
         }),
     };
 };
+
 
 module.exports.verify = async (event, context) => {
 	var crc_token = String(event['queryStringParameters']['crc_token'])

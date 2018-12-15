@@ -22,17 +22,16 @@ module.exports.tweet = async (event, context) => {
     //await statusUpdate("Hello world " + new Date());
     var parsed = JSON.parse(event.body);
     
-    //if there's a photo in the tweet
-    if (parsed['tweet_create_events'][0]['entities']['media'][0]['type'] === 'photo') {
-        console.log("In the loop")
-        
-        console.log(parsed['tweet_create_events'][0]['entities']['media'][0]['media_url_https'])
-    }
-    console.log(event)
-	if (parsed['tweet_create_events']) {
+    try {
+        //if there's a photo in the tweet
+        if (parsed['tweet_create_events'][0]['entities']['media'][0]['type'] === 'photo') {
+            console.log(parsed['tweet_create_events'][0]['entities']['media'][0]['media_url_https'])
+        }
 		var user = parsed['tweet_create_events'][0]['user']
-		var result = await statusUpdate("Hellooooo00000 " + user['screen_name'])
-	}
+		var result = await statusUpdate("Hellooooo00000 " + user['screen_name'] + " what a nice image at " + new Date())
+    } catch(error) {
+        console.log(error[0])
+    }
     return {
         statusCode: 200,
         body: JSON.stringify({
@@ -40,6 +39,8 @@ module.exports.tweet = async (event, context) => {
         }),
     };
 };
+
+
 
 
 module.exports.verify = async (event, context) => {

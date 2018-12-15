@@ -24,22 +24,29 @@ module.exports.tweet = async (event, context) => {
     
     try {
         //if there's a photo in the tweet
-        if (parsed['tweet_create_events'][0]['entities']['media'][0]['type'] === 'photo') {
-            console.log(parsed['tweet_create_events'][0]['entities']['media'][0]['media_url_https'])
+        var media_type = parsed['tweet_create_events'][0]['entities']['media'][0]['type']
+        if (media_type === 'photo') {
+            var img_url = parsed['tweet_create_events'][0]['entities']['media'][0]['media_url_https']
+            console.log(img_url)
         }
 		var user = parsed['tweet_create_events'][0]['user']
 		var result = await statusUpdate("Hellooooo00000 " + user['screen_name'] + " what a nice image at " + new Date())
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Tweeted at the world!',
+            }),
+        };    
     } catch(error) {
         console.log(error[0])
     }
     return {
         statusCode: 200,
         body: JSON.stringify({
-            message: 'Tweeted at the world!',
+            message: 'I didnt tweet back at the world!',
         }),
     };
 };
-
 
 
 

@@ -25,14 +25,18 @@ module.exports.tweet = async (event, context) => {
 };
 
 module.exports.verify = async (event, context) => {
-	crc_token = String(event.crc_token)
-	var consumer_secret = 'V5a2slYwndbirf25ng2gtDq5vAPk2yW2mLdxKX5pWW27tkwFBi';
+	var crc_token = String(event['queryStringParameters']['crc_token'])
+	var consumer_secret = 'V5a2slYwndbirf25ng2gtDq5vAPk2yW2mLdxKX5pWW27tkwFBi'
 
-	hmac = crypto.createHmac('sha256', consumer_secret).update(crc_token).digest('base64')
+	var hmac = crypto.createHmac('sha256', consumer_secret).update(crc_token).digest('base64')
 
 	return {
+	    isBase64Encoded: true,
 		statusCode: 200,
-		response_token: hmac,
+		headers: {},
+        body: JSON.stringify({
+            response_token: "sha256=" + hmac
+        }),
 	};
 }
 

@@ -9,8 +9,13 @@ const twitterClient = new Twitter(config);
  * @param {*} status
  * @return {Promise}
  */
-function statusUpdate(status = 'Hello World!') {
-    return twitterClient.post('statuses/update', { status });
+function statusUpdate(statuss = 'Hello World!') {
+    twitterClient.post('statuses/update', { status: statuss })
+    	.then(function (status){
+    		console.log("I tweeted: " + status)
+    	}).catch(function (error){
+    		console.log("Error: " + String(error))
+    	})
 }
 
 module.exports.tweet = async (event, context) => {
@@ -30,7 +35,6 @@ module.exports.verify = async (event, context) => {
 
 	var hmac = crypto.createHmac('sha256', consumer_secret).update(crc_token).digest('base64')
 
-	//do all this formatting so AWS doesn't get angry 
 	return {
 	    isBase64Encoded: true,
 		statusCode: 200,
@@ -39,9 +43,9 @@ module.exports.verify = async (event, context) => {
             response_token: "sha256=" + hmac
         }),
 	};
-}
+};
 
-module.exports.process = async(event) => {
+module.exports.process = async(event, context) => {
 	//var l = []
 	//for (var i in event) {
 	//	l.push(i)
@@ -50,12 +54,13 @@ module.exports.process = async(event) => {
 	
 	//console.log(event.body)
 	//console.log(JSON.parse(event.body))
+	console.log(event);
+	var parsed = JSON.parse(event.body);
+	console.log(parsed);
 	//if I get tweeted at
-	var parsed = JSON.parse(event.body)
-	console.log(parsed)
 	if (parsed['tweet_create_events']) {
-		var user = parsed['tweet_create_events'][0]['user']
-		await statusUpdate("Hello @ " + user.screen_name)
+		var user = parsed['tweet_create_events'][0]['user'];
+		var result = statusUpdate("Hellooooo")
 	}
 
 	return {

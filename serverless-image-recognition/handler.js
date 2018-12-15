@@ -19,12 +19,17 @@ function statusUpdate(statuss = 'Hello World!') {
 }
 
 module.exports.tweet = async (event, context) => {
-    await statusUpdate("Hello world " + new Date());
-
+    //await statusUpdate("Hello world " + new Date());
+    var parsed = JSON.parse(event.body);
+	if (parsed['tweet_create_events']) {
+		var user = parsed['tweet_create_events'][0]['user'];
+		console.log(String(user))
+		var result = await statusUpdate("Hellooooo ")
+	}
     return {
         statusCode: 200,
         body: JSON.stringify({
-            message: 'Tweeted hello world!',
+            message: 'Tweeted at the world!',
         }),
     };
 };

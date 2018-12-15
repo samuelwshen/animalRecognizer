@@ -26,10 +26,11 @@ module.exports.tweet = async (event, context) => {
 
 module.exports.verify = async (event, context) => {
 	var crc_token = String(event['queryStringParameters']['crc_token'])
-	var consumer_secret = 'V5a2slYwndbirf25ng2gtDq5vAPk2yW2mLdxKX5pWW27tkwFBi'
+	var consumer_secret = 'AWSPQ3HIEZFW4s4PeiM6h5DmCqSSdR4uaBpPNouBJidrPJVHCE'
 
 	var hmac = crypto.createHmac('sha256', consumer_secret).update(crc_token).digest('base64')
 
+	//do all this formatting so AWS doesn't get angry 
 	return {
 	    isBase64Encoded: true,
 		statusCode: 200,
@@ -37,6 +38,31 @@ module.exports.verify = async (event, context) => {
         body: JSON.stringify({
             response_token: "sha256=" + hmac
         }),
+	};
+}
+
+module.exports.process = async(event) => {
+	//var l = []
+	//for (var i in event) {
+	//	l.push(i)
+	//}
+	//console.log(l)
+	
+	//console.log(event.body)
+	//console.log(JSON.parse(event.body))
+	//if I get tweeted at
+	var parsed = JSON.parse(event.body)
+	console.log(parsed)
+	if (parsed['tweet_create_events']) {
+		var user = parsed['tweet_create_events'][0]['user']
+		await statusUpdate("Hello @ " + user.screen_name)
+	}
+
+	return {
+		statusCode: 200,
+		body: JSON.stringify({
+			message: "Got tweeted at"
+		})
 	};
 }
 

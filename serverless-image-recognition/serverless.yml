@@ -21,3 +21,10 @@ functions:
       - http:
           method: get
           path: /verify
+  process:
+    handler: handler.process
+    events:
+      - http:
+          method: post
+          path: /verify
+

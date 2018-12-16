@@ -4,6 +4,7 @@ const axios = require('axios');
 const crypto = require('crypto')
 const AWS = require('aws-sdk');
 const http = require('http');
+const https = require('https');
 
 const twitterClient = new Twitter(config);
 
@@ -21,14 +22,14 @@ function statusUpdate(statuss = 'Hello World!') {
 }
 
 /**
-*   Puts something to the S3 bucket hardcoded in here
+*   Puts <data> named <name> of type <filetype> to bucketofanimals
 */
-function putToS3(){
+function putToS3(data, name, filetype){
     var bucket = new AWS.S3();
     var params = {
         Bucket: 'bucketofanimals',
-        Key: '/hello.txt',
-        Body: 'Hello!'
+        Key: '/' + name + '.' + filetype,
+        Body: data
     }
     bucket.putObject(params, function(error, data) {
         if (error) {
@@ -38,21 +39,32 @@ function putToS3(){
         }
     })
 }
-putToS3()
 
 module.exports.tweet = async (event, context) => {
     //await statusUpdate("Hello world " + new Date());
     var parsed = JSON.parse(event.body);
     
     try {
-        //if there's a photo in the tweet
+        //if the media in the tweet is a photo
         var media_type = parsed['tweet_create_events'][0]['entities']['media'][0]['type']
         if (media_type === 'photo') {
+            //get the url of the image
             var img_url = parsed['tweet_create_events'][0]['entities']['media'][0]['media_url_https']
-            console.log(img_url)
+            
+            //write the img data to the S3 bucket
+            axios.get(img_url)
+                .then(resp => {
+                    putToS3(data, "HelloImage", "jpg")
+                    console.log("Wrote image to S3")
+                })
+                .catch(error => {
+                    console.log(error[0])
+                })
         }
+
+        //get the user and respond
 		var user = parsed['tweet_create_events'][0]['user']
-		var result = await statusUpdate("Hellooooo00000 " + user['screen_name'] + " what a nice image at " + new Date())
+		await statusUpdate("Hello " + user['screen_name'] + " what a nice image at " + new Date())
         return {
             statusCode: 200,
             body: JSON.stringify({
@@ -62,12 +74,6 @@ module.exports.tweet = async (event, context) => {
     } catch(error) {
         console.log(error[0])
     }
-    return {
-        statusCode: 200,
-        body: JSON.stringify({
-            message: 'I didnt tweet back at the world!',
-        }),
-    };
 };
 
 

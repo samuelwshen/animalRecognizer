@@ -40,6 +40,20 @@ function putToS3(data, name, filetype){
     })
 }
 
+function test() {
+    var img_url = 'https://pbs.twimg.com/profile_images/1066114215465734145/FJrZUYZm_400x400.jpg'
+    axios.get(img_url)
+        .then(resp => {
+            var encodedImg = resp.data
+            var decodedImg = Buffer.from(encodedImg, 'base64')
+            putToS3(decodedImg, "HelloImage", "jpg")
+            console.log("Wrote image to S3")
+        })
+        .catch(error => {
+            console.log(error[0])
+        })
+}
+
 module.exports.tweet = async (event, context) => {
     //await statusUpdate("Hello world " + new Date());
     var parsed = JSON.parse(event.body);

@@ -2,6 +2,8 @@ const Twitter = require('twitter');
 const config = require('./config');
 const axios = require('axios');
 const crypto = require('crypto')
+const AWS = require('aws-sdk');
+const http = require('http');
 
 const twitterClient = new Twitter(config);
 
@@ -17,6 +19,26 @@ function statusUpdate(statuss = 'Hello World!') {
     		console.log("Error: " + String(error))
     	})
 }
+
+/**
+*   Puts something to the S3 bucket hardcoded in here
+*/
+function putToS3(){
+    var bucket = new AWS.S3();
+    var params = {
+        Bucket: 'bucketofanimals',
+        Key: '/hello.txt',
+        Body: 'Hello!'
+    }
+    bucket.putObject(params, function(error, data) {
+        if (error) {
+            console.log(error, error.stack)
+        } else {
+            console.log(data)
+        }
+    })
+}
+putToS3()
 
 module.exports.tweet = async (event, context) => {
     //await statusUpdate("Hello world " + new Date());
@@ -91,6 +113,7 @@ module.exports.process = async(event, context) => {
 		})
 	};
 }
+
 
 
 

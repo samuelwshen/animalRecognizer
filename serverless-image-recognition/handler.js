@@ -42,17 +42,32 @@ function putToS3(data, name, filetype){
 
 function test() {
     var img_url = 'https://pbs.twimg.com/profile_images/1066114215465734145/FJrZUYZm_400x400.jpg'
+    
+    https.get('https://pbs.twimg.com/profile_images/1066114215465734145/FJrZUYZm_400x400.jpg', (resp) => {
+        resp.setEncoding('base64');
+        body = 'data:' + resp.headers['content-type'] + ';base64,';
+        resp.on('data', (data) => {
+            putToS3(data, "Hello", "jpg")
+        });
+        resp.on('end', () => {
+            //console.log(resp)
+        })
+    })
+/**
     axios.get(img_url)
         .then(resp => {
             var encodedImg = resp.data
             var decodedImg = Buffer.from(encodedImg, 'base64')
-            putToS3(decodedImg, "HelloImage", "jpg")
+            putToS3(, "HelloImage", "jpg")
             console.log("Wrote image to S3")
+            console.log(resp)
         })
         .catch(error => {
-            console.log(error[0])
+            console.log(error)
         })
+        */
 }
+test()
 
 module.exports.tweet = async (event, context) => {
     //await statusUpdate("Hello world " + new Date());

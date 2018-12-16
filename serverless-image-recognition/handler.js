@@ -149,11 +149,28 @@ module.exports.process = async(event, context) => {
 	};
 }
 
-module.exports.processImage = async(event) => {
-    console.log(event)
-    console.log(event['Records'][0]['s3'])
-    console.log(event['Records'][0]['requestParameters'])
-    console.log(event['Records'][0]['responseElements'])
+module.exports.processImage = async(event, context) => {
+    var rekognition = new AWS.Rekognition();
+    
+    //var bucket = event['Records'][0]['s3']['bucket']['name']
+    //var key = event['Records'][0]['s3']['object']['key']
+    
+    var bucket = 'bucketofanimals'
+    var key = 'cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg'
+
+    var params = {
+        Image: {
+            S3Object: {
+                Bucket: bucket,
+                Name: key
+            }
+        },
+        MinConfidence: 80
+    };
+    rekognition.detectLabels(params, function(err, data){
+        if(err) console.log(err);
+        else    console.log(data);
+    });
 }
 
 

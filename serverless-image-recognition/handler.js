@@ -26,6 +26,7 @@ function statusUpdate(statuss = 'Hello World!') {
 *   Puts <data> named <name> of type <filetype> to bucketofanimals
 */
 function putToS3(data, name, filetype){
+    console.log("In here")
     var bucket = new AWS.S3();
     var params = {
         Body: data,
@@ -40,7 +41,6 @@ function putToS3(data, name, filetype){
         }
     })
 }
-
 //TODO: pass image as stream
 function test() {
     var img_url = 'https://pbs.twimg.com/profile_images/1066114215465734145/FJrZUYZm_400x400.jpg'
@@ -51,6 +51,8 @@ function test() {
             putToS3(data, "Hello", "jpg")
         });
     })
+
+
 /**
     axios.get(img_url)
         .then(resp => {
@@ -68,37 +70,39 @@ function test() {
 //test()
 
 module.exports.tweet = async (event, context) => {
+    
     var parsed = JSON.parse(event.body);
+    console.log("In tweet lambda")
     try {
         //if the media in the tweet is a photo
         var media_type = parsed['tweet_create_events'][0]['entities']['media'][0]['type']
         if (media_type === 'photo') {
+            
             //get the url of the image
             var img_url = parsed['tweet_create_events'][0]['entities']['media'][0]['media_url_https']
-            
-            //write the img data to the S3 bucket
-            axios.get(img_url)
-                .then(resp => {
-                    putToS3(data, "HelloImage", "jpg")
-                    console.log("Wrote image to S3")
-                })
-                .catch(error => {
-                    console.log(error[0])
-                })
+            console.log("Tweet had a photo:  " + img_url)
+            //get the image
+            var get_response = await axios.get(img_url)
+            //write the image data
+            putToS3(get_response.data, "HelloOoOO", "jpg")
+        } else {
+            console.log("Tweet had no photo, doing nothing")
         }
-
+        /**
         //get the user and respond
-		var user = parsed['tweet_create_events'][0]['user']
-        var status_message = "Hello " + user['screen_name'] + " what a nice image at " + new Date()
-        await twitterClient.post('statuses/update', { status: status_message })
+        var user = parsed['tweet_create_events'][0]['user']
+        var statuss = "Hello " + user['screen_name'] + " what a nice image at " + new Date()
+        await twitterClient.post('statuses/update', { status: statuss })
+        console.log("Tweeted")
         return {
             statusCode: 200,
             body: JSON.stringify({
                 message: 'Tweeted at the world!',
             }),
         };    
+        */
     } catch(error) {
-        console.log(error[0])
+        console.log(error)
     }
     
 };
@@ -148,7 +152,14 @@ module.exports.process = async(event, context) => {
 }
 
 module.exports.processImage = async(event) => {
-
+    console.log("PRocessing")
+    await twitterClient.post('statuses/update', { status: "PRocessing" })
+        .then(function (status){
+            console.log("I tweeted: " + status)
+            return;
+        }).catch(function (error){
+            console.log("Error: " + String(error))
+        })
 }
 
 

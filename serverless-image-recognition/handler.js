@@ -12,8 +12,8 @@ const twitterClient = new Twitter(config);
  * @param {*} status
  * @return {Promise}
  */
-function statusUpdate(statuss = 'Hello World!') {
-    twitterClient.post('statuses/update', { status: statuss })
+async function statusUpdate(statuss = 'Hello World!') {
+    return twitterClient.post('statuses/update', { status: statuss })
     	.then(function (status){
     		console.log("I tweeted: " + status)
             return;
@@ -33,13 +33,11 @@ function putToS3(data, name, filetype){
         Bucket: 'bucketofanimals',
         Key: name + '.' + filetype
     }
-    bucket.putObject(params, function(error, data) {
-        if (error) {
-            console.log(error, error.stack)
-        } else {
-            console.log(data)
-        }
+    return bucket.putObject(params, function(err, data){
+        if(err) console.log(err);
+        else console.log(data);
     })
+
 }
 //TODO: pass image as stream
 function test() {
@@ -152,16 +150,11 @@ module.exports.process = async(event, context) => {
 }
 
 module.exports.processImage = async(event) => {
-    console.log("PRocessing")
-    await twitterClient.post('statuses/update', { status: "PRocessing" })
-        .then(function (status){
-            console.log("I tweeted: " + status)
-            return;
-        }).catch(function (error){
-            console.log("Error: " + String(error))
-        })
+    console.log(event)
+    console.log(event['Records'][0]['s3'])
+    console.log(event['Records'][0]['requestParameters'])
+    console.log(event['Records'][0]['responseElements'])
 }
-
 
 
 

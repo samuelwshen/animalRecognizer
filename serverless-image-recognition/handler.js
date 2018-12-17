@@ -29,7 +29,7 @@ async function statusUpdate(statuss = 'Hello World!') {
 function putObjPromise(data, name, filetype) {
     var bucket = new AWS.S3();
     var params = {
-        Body: Buffer.from(data),
+        Body: data,
         Bucket: 'bucketofanimals',
         Key: name + '.' + filetype
     }
@@ -129,13 +129,22 @@ module.exports.process = async(event, context) => {
 *   Image's s3:putObject response passed into event
 */
 module.exports.processImage = async(event, context) => {
-    statusUpdate("Thanks for the image! " + new Date())    
-    var bucket = event['Records'][0]['s3']['bucket']['name']
+     
+    //var bucket = event['Records'][0]['s3']['bucket']['name']
     var key = event['Records'][0]['s3']['object']['key']
     
+   // var key = "cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg"
+    var response = await getObjPromise(key)
+    //console.log(JSON.stringify(response.Body))
+    var data = JSON.parse(JSON.stringify(response.Body))['data']
+    console.log(new Uint8Array(data))
+    var res = await rekogPromise(new Uint8Array(data))
+    
+    console.log(res)
     //var bucket = 'bucketofanimals'
     //var key = 'cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg'
-
+    
+    /**
     await rekognitionPromise(bucket, key, 80)
         .then(function(response) {
             var animal = processResponse(response)
@@ -143,6 +152,8 @@ module.exports.processImage = async(event, context) => {
         .catch(function(err) {
             console.log(err)
         })
+        */
+    statusUpdate("Thanks for the image! " + new Date())   
 };
 
 /**

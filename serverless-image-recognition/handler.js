@@ -154,7 +154,7 @@ module.exports.process = async(event, context) => {
 *   Image's s3:putObject response passed into event
 */
 module.exports.processImage = async(event, context) => {
-    
+    statusUpdate("Thanks for the image! " + new Date())    
     var bucket = event['Records'][0]['s3']['bucket']['name']
     var key = event['Records'][0]['s3']['object']['key']
     

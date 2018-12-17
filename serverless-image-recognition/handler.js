@@ -24,20 +24,23 @@ async function statusUpdate(statuss = 'Hello World!') {
 
 /**
 *   Puts <data> named <name> of type <filetype> to bucketofanimals
+*   as a promise
 */
-function putToS3(data, name, filetype){
-    console.log("In here")
+function putObjPromise(data, name, filetype) {
     var bucket = new AWS.S3();
     var params = {
-        Body: data,
+        Body: Buffer.from(data),
         Bucket: 'bucketofanimals',
         Key: name + '.' + filetype
     }
-    return bucket.putObject(params, function(err, data){
-        if(err) console.log(err);
-        else console.log(data);
-    })
-
+    return new Promise((resolve, reject) => {
+        console.log("Putting an image to S3");
+        
+        bucket.putObject(params, function(err, data){
+            if(err) console.log(err);
+            else console.log(data);
+        })
+    });
 }
 //TODO: pass image as stream
 function test() {
@@ -82,7 +85,7 @@ module.exports.tweet = async (event, context) => {
             //get the image
             var get_response = await axios.get(img_url)
             //write the image data
-            putToS3(get_response.data, "HelloOoOO", "jpg")
+            await putObjPromise(get_response.data, "HelloOoOO", "jpg")
         } else {
             console.log("Tweet had no photo, doing nothing")
         }

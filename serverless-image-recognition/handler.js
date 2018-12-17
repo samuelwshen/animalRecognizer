@@ -150,7 +150,6 @@ module.exports.process = async(event, context) => {
 }
 
 module.exports.processImage = async(event, context) => {
-    var rekognition = new AWS.Rekognition();
     
     //var bucket = event['Records'][0]['s3']['bucket']['name']
     //var key = event['Records'][0]['s3']['object']['key']
@@ -158,6 +157,12 @@ module.exports.processImage = async(event, context) => {
     var bucket = 'bucketofanimals'
     var key = 'cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg'
 
+    var response = await rekognitionPromise(bucket, key, 80)
+    console.log(response.data)
+};
+
+function rekognitionPromise(bucket, key, confidence) {
+    var rekognition = new AWS.Rekognition();
     var params = {
         Image: {
             S3Object: {
@@ -165,14 +170,18 @@ module.exports.processImage = async(event, context) => {
                 Name: key
             }
         },
-        MinConfidence: 80
+        MinConfidence: confidence || 80
     };
-    rekognition.detectLabels(params, function(err, data){
-        if(err) console.log(err);
-        else    console.log(data);
+    
+    return new Promise((resolve, reject) => {
+        console.log("Calling AWS detectLabels");
+        
+        rekognition.detectLabels(params, (err, response) => {
+            if (err) reject(err);
+            else resolve(response);
+        });
     });
 }
-
 
 
 

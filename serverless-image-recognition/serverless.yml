@@ -21,17 +21,14 @@ functions:
       - http:
           method: get
           path: /tweet
+      - http:
+          method: post
+          path: /verify
   verify:
     handler: handler.verify
     events:
       - http:
           method: get
-          path: /verify
-  process:
-    handler: handler.process
-    events:
-      - http:
-          method: post
           path: /verify
   testS3:
     handler: handler.testS3

@@ -149,17 +149,53 @@ module.exports.process = async(event, context) => {
 	};
 }
 
+/**
+*   Finds the best animal fit for the image 
+*   Image's s3:putObject response passed into event
+*/
 module.exports.processImage = async(event, context) => {
     
-    //var bucket = event['Records'][0]['s3']['bucket']['name']
-    //var key = event['Records'][0]['s3']['object']['key']
+    var bucket = event['Records'][0]['s3']['bucket']['name']
+    var key = event['Records'][0]['s3']['object']['key']
     
-    var bucket = 'bucketofanimals'
-    var key = 'cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg'
+    //var bucket = 'bucketofanimals'
+    //var key = 'cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg'
 
-    var response = await rekognitionPromise(bucket, key, 80)
-    console.log(response.data)
+    await rekognitionPromise(bucket, key, 80)
+        .then(function(response) {
+            var animal = processResponse(response)
+        })
+        .catch(function(err) {
+            console.log(err)
+        })
 };
+
+/**
+ * Processes a response from a detectLabels call, returning the best fit
+ */ 
+function processResponse(response) {
+    //non-useful names that are common
+    var forbidden = ["Wildlife", "Animal"]
+    
+    //find the max element of response by it's Confidence rating that isn't forbidden 
+    var max_animal = ""
+    var max_score = 0
+    
+    for (let index in response['Labels']) {
+        let name = response['Labels'][index]['Name']
+        let score = parseFloat(response['Labels'][index]['Confidence'])
+        //if name isn't forbidden
+        if (forbidden.indexOf(name) < 0) {
+            if (score > max_score) {
+                max_animal = name
+                max_score = score
+            }
+        }
+
+    }
+    return max_animal;
+}
+
 
 function rekognitionPromise(bucket, key, confidence) {
     var rekognition = new AWS.Rekognition();

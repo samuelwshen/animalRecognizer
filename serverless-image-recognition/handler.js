@@ -29,7 +29,7 @@ async function statusUpdate(statuss = 'Hello World!') {
 function putObjPromise(data, name, filetype) {
     var bucket = new AWS.S3();
     var params = {
-        Body: new Buffer(data).toString('base64'),
+        Body: Buffer(data),
         Bucket: 'bucketofanimals',
         Key: name + '.' + filetype
     }

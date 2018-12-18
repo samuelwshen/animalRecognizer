@@ -5,6 +5,8 @@ const crypto = require('crypto')
 const AWS = require('aws-sdk');
 const http = require('http');
 const https = require('https');
+const request = require('request');
+const util = require('util');
 
 const twitterClient = new Twitter(config);
 
@@ -54,10 +56,17 @@ module.exports.tweet = async (event, context) => {
             //get the url of the image
             var img_url = parsed['tweet_create_events'][0]['entities']['media'][0]['media_url_https']
             console.log("Tweet had a photo:  " + img_url)
-            //get the image
-            var get_response = await axios.get(img_url)
-            //write the image data
-            await putObjPromise(get_response.data, "HelloOoOO", "jpg")
+
+            //do get request and s3 upload in one
+            var options = {
+                uri: img_url,
+                encoding: null
+            };
+            const rq = util.promisify(request)
+            await rq(options)
+            var resp = await rq(options)
+            await putObjPromise(resp.body, "Hello", "jpg")
+
         } else {
             console.log("Tweet had no photo, doing nothing")
         }

@@ -142,7 +142,7 @@ module.exports.processImage = async(event, context) => {
     //var bucket = event['Records'][0]['s3']['bucket']['name']
     var key = event['Records'][0]['s3']['object']['key']
     
-   // var key = "cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg"
+    //var key = "cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg"
     var response = await getObjPromise(key)
     //console.log(JSON.stringify(response.Body))
     var data = JSON.parse(JSON.stringify(response.Body))['data']
@@ -150,19 +150,8 @@ module.exports.processImage = async(event, context) => {
     var res = await rekogPromise(new Uint8Array(data))
     
     console.log(res)
-    //var bucket = 'bucketofanimals'
-    //var key = 'cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg'
-    
-    /**
-    await rekognitionPromise(bucket, key, 80)
-        .then(function(response) {
-            var animal = processResponse(response)
-        })
-        .catch(function(err) {
-            console.log(err)
-        })
-        */
-    statusUpdate("Thanks for the image! " + new Date())   
+
+    await statusUpdate("Thanks for the image! " + new Date())   
 };
 
 /**

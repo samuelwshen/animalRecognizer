@@ -144,10 +144,7 @@ module.exports.processImage = async(event, context) => {
     
     //var key = "cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg"
     var response = await getObjPromise(key)
-    //console.log(JSON.stringify(response.Body))
-    var data = JSON.parse(JSON.stringify(response.Body))['data']
-    console.log(new Uint8Array(data))
-    var res = await rekogPromise(new Uint8Array(data))
+    var res = await rekogPromise(response.Body)
     
     console.log(res)
 

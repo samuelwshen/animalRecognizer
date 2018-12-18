@@ -14,14 +14,8 @@ const twitterClient = new Twitter(config);
  * @param {*} status
  * @return {Promise}
  */
-async function statusUpdate(statuss = 'Hello World!') {
-    return twitterClient.post('statuses/update', { status: statuss })
-    	.then(function (status){
-    		console.log("I tweeted: " + status)
-            return;
-    	}).catch(function (error){
-    		console.log("Error: " + String(error))
-    	})
+function statusUpdate(statuss = 'Hello World!') {
+    return twitterClient.post('statuses/update', { status: statuss });
 }
 
 /**
@@ -65,7 +59,7 @@ module.exports.tweet = async (event, context) => {
             const rq = util.promisify(request)
             await rq(options)
             var resp = await rq(options)
-            await putObjPromise(resp.body, "Hello", "jpg")
+            await putObjPromise(resp.body, parsed['tweet_create_events'][0]['user']['screen_name'], "jpg")
 
         } else {
             console.log("Tweet had no photo, doing nothing")
@@ -140,7 +134,6 @@ module.exports.process = async(event, context) => {
 module.exports.processImage = async(event, context) => {
 
     var key = event['Records'][0]['s3']['object']['key']
-    console.log(event)
     
     //get image from S3 and pass into rekognition
     var response = await getObjPromise(key)
@@ -149,8 +142,10 @@ module.exports.processImage = async(event, context) => {
     console.log(labels)
     //find and tweet animal name
     var animal = processResponse(labels)
-    console.log("Its a " + animal)
-    await statusUpdate("Thanks for the image of a " + animal + " at " + new Date())   
+
+    //can hardcode as jpg since all images are uploaded as jpgs
+    var handle = key.replace(".jpg", "")
+    await statusUpdate("Thanks for the image of a " + animal + " @" + handle + "\n\n" + new Date())   
 };
 
 /**

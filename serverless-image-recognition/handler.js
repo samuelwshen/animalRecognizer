@@ -37,6 +37,24 @@ function putObjPromise(data, name, filetype) {
         })
     });
 }
+/**
+*   Gets object named key from bucketofanimals
+*   as a promise
+*/
+function getObjPromise(key) {
+    var bucket = new AWS.S3();
+    var params = {
+        Bucket: 'bucketofanimals',
+        Key: key
+    }
+    return new Promise((resolve, reject) => {
+        console.log("Putting an image to S3");
+        bucket.getObject(params, (err, response) =>{
+            if(err) reject(err);
+            else resolve(response);
+        })
+    });
+}
 
 module.exports.tweet = async (event, context) => {
     
@@ -57,26 +75,12 @@ module.exports.tweet = async (event, context) => {
                 encoding: null
             };
             const rq = util.promisify(request)
-            await rq(options)
             var resp = await rq(options)
             await putObjPromise(resp.body, parsed['tweet_create_events'][0]['user']['screen_name'], "jpg")
 
         } else {
             console.log("Tweet had no photo, doing nothing")
         }
-        /**
-        //get the user and respond
-        var user = parsed['tweet_create_events'][0]['user']
-        var statuss = "Hello " + user['screen_name'] + " what a nice image at " + new Date()
-        await twitterClient.post('statuses/update', { status: statuss })
-        console.log("Tweeted")
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                message: 'Tweeted at the world!',
-            }),
-        };    
-        */
     } catch(error) {
         console.log(error)
     }
@@ -102,14 +106,6 @@ module.exports.verify = async (event, context) => {
 };
 
 module.exports.process = async(event, context) => {
-	//var l = []
-	//for (var i in event) {
-	//	l.push(i)
-	//}
-	//console.log(l)
-	
-	//console.log(event.body)
-	//console.log(JSON.parse(event.body))
 	console.log(event);
 	var parsed = JSON.parse(event.body);
 	console.log(parsed);

@@ -105,24 +105,6 @@ module.exports.verify = async (event, context) => {
 	};
 };
 
-module.exports.process = async(event, context) => {
-	console.log(event);
-	var parsed = JSON.parse(event.body);
-	console.log(parsed);
-	//if I get tweeted at
-	if (parsed['tweet_create_events']) {
-		var user = parsed['tweet_create_events'][0]['user'];
-		var result = statusUpdate("Hellooooo")
-	}
-
-	return {
-		statusCode: 200,
-		body: JSON.stringify({
-			message: "Got tweeted at"
-		})
-	};
-}
-
 /**
 *   Finds the best animal fit for the image 
 *   Image's s3:putObject response passed into event

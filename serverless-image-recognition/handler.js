@@ -138,17 +138,19 @@ module.exports.process = async(event, context) => {
 *   Image's s3:putObject response passed into event
 */
 module.exports.processImage = async(event, context) => {
-     
-    //var bucket = event['Records'][0]['s3']['bucket']['name']
-    var key = event['Records'][0]['s3']['object']['key']
-    
-    //var key = "cheetah-mom-cubs.ngsversion.1461770750320.adapt.1900.1.jpg"
-    var response = await getObjPromise(key)
-    var res = await rekogPromise(response.Body)
-    
-    console.log(res)
 
-    await statusUpdate("Thanks for the image! " + new Date())   
+    var key = event['Records'][0]['s3']['object']['key']
+    console.log(event)
+    
+    //get image from S3 and pass into rekognition
+    var response = await getObjPromise(key)
+    var labels = await rekogPromise(response.Body)
+    
+    console.log(labels)
+    //find and tweet animal name
+    var animal = processResponse(labels)
+    console.log("Its a " + animal)
+    await statusUpdate("Thanks for the image of a " + animal + " at " + new Date())   
 };
 
 /**

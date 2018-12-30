@@ -33,4 +33,16 @@ functions:
       - s3:
         bucket: "bucketofanimals"
         event: s3:ObjectCreated:*
+  fbverify:
+    handler: handler.fbverify
+    events:
+      - http:
+          method: get
+          path: /fbverify
+  fbProcessImage:
+    handler: handler.fbProcessImage
+    events:
+      - http:
+          method: post
+          path: /fbverify
 

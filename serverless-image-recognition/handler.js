@@ -7,6 +7,7 @@ const http = require('http');
 const https = require('https');
 const request = require('request');
 const util = require('util');
+const BootBot = require('bootbot');
 
 const twitterClient = new Twitter(config);
 
@@ -126,6 +127,33 @@ module.exports.processImage = async(event, context) => {
 };
 
 /**
+    Performs a verification request for FB
+*/
+module.exports.fbverify = async(event, context) => {
+    
+};
+
+/**
+    Processes an image for the FB messenger bot
+    Takes in a webhook event, gets image, passes into
+    rekognition, and responds
+*/
+module.exports.fbProcessImage = async(event, context) => {
+    console.log(event)
+
+    //Checks this is an event from a page subscription
+    if (event.body.object === "page") {
+        req.body.entry.forEach(function(entry) {
+            let message = entry_messaging[0];
+            console.log(message)
+        })
+        context.status(200).send('EVENT_RECEIVED');
+    } else {
+        context.sendStatus(404);
+    }
+};
+
+/**
  * Processes a response from a detectLabels call, returning the best fit
  */ 
 function processResponse(response) {
@@ -173,6 +201,8 @@ function rekogPromise(bucket, key, confidence) {
         });
     });
 }
+
+
 
 
 

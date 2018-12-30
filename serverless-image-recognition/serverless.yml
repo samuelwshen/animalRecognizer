@@ -19,9 +19,6 @@ functions:
     handler: handler.tweet
     events:
       - http:
-          method: get
-          path: /tweet
-      - http:
           method: post
           path: /verify
   verify:
@@ -33,7 +30,7 @@ functions:
   processImage:
     handler: handler.processImage
     events:
-      - http:
-          method: get
-          path: /processImage
+      - s3:
+        bucket: bucketofanimals
+        event: s3:ObjectCreated:*
 

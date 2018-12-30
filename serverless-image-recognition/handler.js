@@ -113,9 +113,8 @@ module.exports.processImage = async(event, context) => {
 
     var key = event['Records'][0]['s3']['object']['key']
     
-    //get image from S3 and pass into rekognition
-    var response = await getObjPromise(key)
-    var labels = await rekogPromise(response.Body)
+    //pass into rekognition
+    var labels = await rekogPromise("bucketofanimals", key, 80)
     
     console.log(labels)
     //find and tweet animal name
@@ -153,7 +152,7 @@ function processResponse(response) {
 }
 
 
-function rekognitionPromise(bucket, key, confidence) {
+function rekogPromise(bucket, key, confidence) {
     var rekognition = new AWS.Rekognition();
     var params = {
         Image: {

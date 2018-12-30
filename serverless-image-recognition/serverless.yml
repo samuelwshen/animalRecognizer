@@ -31,6 +31,6 @@ functions:
     handler: handler.processImage
     events:
       - s3:
-        bucket: bucketofanimals
+        bucket: "bucketofanimals"
         event: s3:ObjectCreated:*
 

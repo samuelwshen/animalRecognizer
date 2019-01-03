@@ -7,7 +7,6 @@ const http = require('http');
 const https = require('https');
 const request = require('request');
 const util = require('util');
-const BootBot = require('bootbot');
 
 const twitterClient = new Twitter(config);
 
@@ -129,7 +128,36 @@ module.exports.processImage = async(event, context) => {
 /**
     Performs a verification request for FB
 */
-module.exports.fbverify = async(event, context) => {
+module.exports.fbverify = async(event, context, callback) => {
+    
+    //get the query paramters
+    let params = event['queryStringParameters']
+    
+    //some random string
+    let VERIFY_TOKEN = "sRExr8YoXoIJWYIGteloLT5DHUb5vrTx4DmxtxMYJMwF2W8igE"
+
+    // Parse the query params
+    let mode = params['hub.mode'];
+    let token = params['hub.verify_token'];
+    let challenge = params['hub.challenge'];
+
+    // Checks if a token and mode is in the query string of the request
+    if (mode && token) {
+        // Checks the mode and token sent is correct
+        if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+            // Responds with the challenge token from the request
+            console.log('WEBHOOK_VERIFIED');
+            return {
+                statusCode: 200,
+                body: parseInt(challenge)
+            }
+        } else {
+            // Responds with '403 Forbidden' if verify tokens do not match
+            return {
+                statusCode: 403   
+            }
+        }
+    }
     
 };
 
@@ -158,7 +186,7 @@ module.exports.fbProcessImage = async(event, context) => {
  */ 
 function processResponse(response) {
     //non-useful names that are common
-    var forbidden = ["Wildlife", "Animal"]
+    var forbidden = ["Wildlife", "Animal", "Mammal"]
     
     //find the max element of response by it's Confidence rating that isn't forbidden 
     var max_animal = ""
@@ -201,6 +229,7 @@ function rekogPromise(bucket, key, confidence) {
         });
     });
 }
+
 
 
 

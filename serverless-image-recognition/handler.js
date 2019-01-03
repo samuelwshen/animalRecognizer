@@ -169,18 +169,25 @@ module.exports.fbverify = async(event, context, callback) => {
 module.exports.fbProcessImage = async(event, context) => {
     console.log(event['body'])
     var body = JSON.parse(event['body'])
+    
     //Checks this is an event from a page subscription
     if (body['object'] === "page") {
         var message = body['entry'][0]['messaging'][0];
         var sender = message['sender']['id']
         var text = message['message']['text']
-        fbmessage(sender, text)
+        
+        //if there's an image attachment
+        if (message['message']['attachments']) {
+            await fbmessage(sender, "thanks for the image")
+            console.log("Sent message in response to image")
+        }
+        
         return {
             statusCode: 200,
             body: "EVENT_RECEIVED"
         }
     } else {
-        console.log("Uhoh");
+        console.log("Not a webhook event from a page we are subscribed to");
         return {
             statusCode: 404
         }

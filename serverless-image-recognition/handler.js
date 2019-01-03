@@ -167,19 +167,49 @@ module.exports.fbverify = async(event, context, callback) => {
     rekognition, and responds
 */
 module.exports.fbProcessImage = async(event, context) => {
-    console.log(event)
-
+    console.log(event['body'])
+    var body = JSON.parse(event['body'])
     //Checks this is an event from a page subscription
-    if (event.body.object === "page") {
-        req.body.entry.forEach(function(entry) {
-            let message = entry_messaging[0];
-            console.log(message)
-        })
-        context.status(200).send('EVENT_RECEIVED');
+    if (body['object'] === "page") {
+        var message = body['entry'][0]['messaging'][0];
+        var sender = message['sender']['id']
+        var text = message['message']['text']
+        fbmessage(sender, text)
+        return {
+            statusCode: 200,
+            body: "EVENT_RECEIVED"
+        }
     } else {
-        context.sendStatus(404);
+        console.log("Uhoh");
+        return {
+            statusCode: 404
+        }
     }
 };
+
+/**
+ * Sends a facebook message to a recipient
+ */
+function fbmessage(recipient_id, text) {
+    var request_body = {
+        recipient: {
+            id: recipient_id
+        }, 
+        message: text
+    }
+    request({
+        uri: "https://graph.facebook.com/v2.6/me/messages",
+        qs: { access_token: 'ACCESS_TOKEN_HERE' },
+        method: "POST",
+        json: request_body
+    }, (err, res, body) => {
+        if (!err) {
+            console.log('message sent!')
+        } else {
+            console.error("Unable to send message:" + err);
+        }
+    }); 
+}
 
 /**
  * Processes a response from a detectLabels call, returning the best fit

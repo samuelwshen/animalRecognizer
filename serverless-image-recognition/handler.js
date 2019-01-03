@@ -190,33 +190,39 @@ module.exports.fbProcessImage = async(event, context) => {
 /**
  * Sends a facebook message to a recipient
  */
-function fbmessage(recipient_id, text) {
+function fbmessage(recipient_id, response_text) {
     var request_body = {
         recipient: {
             id: recipient_id
         }, 
-        message: text
+        message: {
+            text: response_text
+        }
     }
-    request({
+    var params = {
         uri: "https://graph.facebook.com/v2.6/me/messages",
-        qs: { access_token: 'ACCESS_TOKEN_HERE' },
+        qs: { access_token: 'EAAEEM3wbR2QBAKtwZBrO6COYlCnxTZACJ4iXZCuF9c36L2DXUXQTWk9m8A5w5slebJ1MmLDqILtSoJXggPpvZCtCnIKRG3orwxd2upFqkvEvHo9xd2caYIDzZBbebAAuZBK2Y5dSZCmQ4LGG8QzNUd0cz1wnbGWWA1f8DapB2GOAAZDZD' },
         method: "POST",
         json: request_body
-    }, (err, res, body) => {
-        if (!err) {
-            console.log('message sent!')
-        } else {
-            console.error("Unable to send message:" + err);
-        }
-    }); 
+    }
+    return new Promise((resolve, reject) => {
+        request(params, (err, res, body) => {
+            if (err) {
+                console.log(err)
+                reject(err)
+            } else {
+                console.log(body)
+                resolve(body)
+            }
+        });  
+    })
 }
-
 /**
  * Processes a response from a detectLabels call, returning the best fit
  */ 
 function processResponse(response) {
     //non-useful names that are common
-    var forbidden = ["Wildlife", "Animal", "Mammal"]
+    var forbidden = ["Wildlife", "Animal"]
     
     //find the max element of response by it's Confidence rating that isn't forbidden 
     var max_animal = ""

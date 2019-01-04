@@ -24,15 +24,12 @@ function statusUpdate(statuss = 'Hello World!') {
 *
 *   Unit testable, get image data from a live image URL, manually check upload on S3
 */
-function putObjPromise(data, name, filetype, source) {
+function putObjPromise(data, name, filetype) {
     var bucket = new AWS.S3();
     var params = {
         Body: data,
         Bucket: 'bucketofanimals',
         Key: name + '.' + filetype, 
-        Metadata: {
-            source: source
-        }
     };
     return new Promise((resolve, reject) => {
         console.log("Putting an image to S3");
@@ -68,7 +65,7 @@ module.exports.tweet = async (event, context) => {
             var resp = await rq(options);
             
             //prepends the name with 'tw***' to identify this as a photo uploaded from a tweet
-            await putObjPromise(resp.body, "tw***" + parsed['tweet_create_events'][0]['user']['screen_name'], "jpg", "twitter")
+            await putObjPromise(resp.body, "tw***" + parsed['tweet_create_events'][0]['user']['screen_name'], "jpg")
 
         } else {
             console.log("Tweet had no photo, doing nothing")
@@ -197,7 +194,7 @@ module.exports.fbUploadImage = async(event, context) => {
             var resp = await rq(options);
             
             //prepends the name with 'tw***' to identify this as a photo uploaded from a tweet
-            await putObjPromise(resp.body, "fb***" + sender, "jpg", "twitter")
+            await putObjPromise(resp.body, "fb***" + sender, "jpg")
         } else {
             await fbmessage(sender, "Try sending me an image of an animal")
         }

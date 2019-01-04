@@ -21,6 +21,8 @@ function statusUpdate(statuss = 'Hello World!') {
 /**
 *   Puts <data> named <name> of type <filetype> to bucketofanimals
 *   as a promise
+*
+*   Unit testable, get image data from a live image URL, manually check upload on S3
 */
 function putObjPromise(data, name, filetype, source) {
     var bucket = new AWS.S3();
@@ -31,45 +33,30 @@ function putObjPromise(data, name, filetype, source) {
         Metadata: {
             source: source
         }
-    }
+    };
     return new Promise((resolve, reject) => {
         console.log("Putting an image to S3");
         bucket.putObject(params, (err, response) =>{
             if(err) reject(err);
             else resolve(response);
-        })
-    });
-}
-/**
-*   Gets object named key from bucketofanimals
-*   as a promise
-*/
-function getObjPromise(key) {
-    var bucket = new AWS.S3();
-    var params = {
-        Bucket: 'bucketofanimals',
-        Key: key
-    }
-    return new Promise((resolve, reject) => {
-        console.log("Putting an image to S3");
-        bucket.getObject(params, (err, response) =>{
-            if(err) reject(err);
-            else resolve(response);
-        })
+        });
     });
 }
 
+/**
+*   Receives twitter webhook and uploads image from tweet to s3 if one exists.
+*
+*   Testable by tweeting to the bot or recording a webhook event and passing into function locally.
+*/
 module.exports.tweet = async (event, context) => {
-    
     var parsed = JSON.parse(event.body);
-    console.log("In tweet lambda")
     try {
         //if the media in the tweet is a photo
-        var media_type = parsed['tweet_create_events'][0]['entities']['media'][0]['type']
+        var media_type = parsed['tweet_create_events'][0]['entities']['media'][0]['type'];
         if (media_type === 'photo') {
             
             //get the url of the image
-            var img_url = parsed['tweet_create_events'][0]['entities']['media'][0]['media_url_https']
+            var img_url = parsed['tweet_create_events'][0]['entities']['media'][0]['media_url_https'];
             console.log("Tweet had a photo:  " + img_url)
 
             //do get request and s3 upload in one
@@ -77,8 +64,8 @@ module.exports.tweet = async (event, context) => {
                 uri: img_url,
                 encoding: null
             };
-            const rq = util.promisify(request)
-            var resp = await rq(options)
+            const rq = util.promisify(request);
+            var resp = await rq(options);
             
             //prepends the name with 'tw***' to identify this as a photo uploaded from a tweet
             await putObjPromise(resp.body, "tw***" + parsed['tweet_create_events'][0]['user']['screen_name'], "jpg", "twitter")
@@ -93,12 +80,17 @@ module.exports.tweet = async (event, context) => {
 };
 
 
-
+/**
+*   Performs webhook verification for Twitter.
+*
+*   Testable by manually triggering a webhook verification event:
+*       https://developer.twitter.com/en/docs/accounts-and-users/subscribe-account-activity/guides/managing-webhooks-and-subscriptions.html
+*/
 module.exports.verify = async (event, context) => {
-	var crc_token = String(event['queryStringParameters']['crc_token'])
-	var consumer_secret = 'AWSPQ3HIEZFW4s4PeiM6h5DmCqSSdR4uaBpPNouBJidrPJVHCE'
+	var crc_token = String(event['queryStringParameters']['crc_token']);
+	var consumer_secret = 'AWSPQ3HIEZFW4s4PeiM6h5DmCqSSdR4uaBpPNouBJidrPJVHCE';
 
-	var hmac = crypto.createHmac('sha256', consumer_secret).update(crc_token).digest('base64')
+	var hmac = crypto.createHmac('sha256', consumer_secret).update(crc_token).digest('base64');
 
 	return {
 	    isBase64Encoded: true,
@@ -113,20 +105,21 @@ module.exports.verify = async (event, context) => {
 /**
 *   Finds the best animal fit for the image 
 *   Image's s3:putObject response passed into event
+*
+*   Testable by manually uploading an image with an animal to bucketofanimals s3 bucket
 */
 module.exports.processImage = async(event, context) => {
     
-    var key = event['Records'][0]['s3']['object']['key']
+    var key = event['Records'][0]['s3']['object']['key'];
     
     //pass into rekognition
-    var labels = await rekogPromise("bucketofanimals", key, 80)
+    var labels = await rekogPromise("bucketofanimals", key, 80);
     
-    console.log(labels)
     //find and tweet animal name
-    var animal = processResponse(labels)
+    var animal = processResponse(labels);
 
     //can hardcode as jpg since all images are uploaded as jpgs
-    var handle = key.replace(".jpg", "")
+    var handle = key.replace(".jpg", "");
     
     //if image from twitter
     if (key.indexOf("tw***") >= 0) {
@@ -140,14 +133,16 @@ module.exports.processImage = async(event, context) => {
 
 /**
     Performs a verification request for FB
+
+    Testable by manually triggering a webhook verification in FB app console.
 */
 module.exports.fbverify = async(event, context, callback) => {
     
     //get the query paramters
-    let params = event['queryStringParameters']
+    let params = event['queryStringParameters'];
     
     //some random string
-    let VERIFY_TOKEN = "sRExr8YoXoIJWYIGteloLT5DHUb5vrTx4DmxtxMYJMwF2W8igE"
+    let VERIFY_TOKEN = "sRExr8YoXoIJWYIGteloLT5DHUb5vrTx4DmxtxMYJMwF2W8igE";
 
     // Parse the query params
     let mode = params['hub.mode'];
@@ -177,31 +172,34 @@ module.exports.fbverify = async(event, context, callback) => {
 /**
     Uploads an image for the FB messenger bot
     Takes in a webhook event, gets image, uploads to S3
+
+    Testable by messaging the messenger bot an image, or recording a webhook event and passing in locally.
 */
 module.exports.fbUploadImage = async(event, context) => {
-    console.log(event['body'])
-    var body = JSON.parse(event['body'])
+    var body = JSON.parse(event['body']);
     
     //Checks this is an event from a page subscription
     if (body['object'] === "page") {
         var message = body['entry'][0]['messaging'][0];
-        var sender = message['sender']['id']
+        var sender = message['sender']['id'];
         
         //if there's an image attachment
         if (message['message']['attachments'] && message['message']['attachments'][0]['type'] === 'image') {
-            var img_url = message['message']['attachments'][0]['payload']['url']
-            console.log(img_url)
+            var img_url = message['message']['attachments'][0]['payload']['url'];
+            console.log("FB image at " + img_url)
             
             //do get request and s3 upload in one
             var options = {
                 uri: img_url,
                 encoding: null
             };
-            const rq = util.promisify(request)
-            var resp = await rq(options)
+            const rq = util.promisify(request);
+            var resp = await rq(options);
             
             //prepends the name with 'tw***' to identify this as a photo uploaded from a tweet
             await putObjPromise(resp.body, "fb***" + sender, "jpg", "twitter")
+        } else {
+            await fbmessage(sender, "Try sending me an image of an animal")
         }
         
         return {
@@ -218,6 +216,8 @@ module.exports.fbUploadImage = async(event, context) => {
 
 /**
  * Sends a facebook message to a recipient
+ *
+ *  Testable by recording the recipient id of a tester-accessible account and passing in.
  */
 function fbmessage(recipient_id, response_text) {
     var request_body = {
@@ -251,15 +251,15 @@ function fbmessage(recipient_id, response_text) {
  */ 
 function processResponse(response) {
     //non-useful names that are common
-    var forbidden = ["Wildlife", "Animal", "Mammal"]
+    var forbidden = ["Wildlife", "Animal", "Mammal"];
     
     //find the max element of response by it's Confidence rating that isn't forbidden 
-    var max_animal = ""
-    var max_score = 0
+    var max_animal = "";
+    var max_score = 0;
     
     for (let index in response['Labels']) {
-        let name = response['Labels'][index]['Name']
-        let score = parseFloat(response['Labels'][index]['Confidence'])
+        let name = response['Labels'][index]['Name'];
+        let score = parseFloat(response['Labels'][index]['Confidence']);
         //if name isn't forbidden
         if (forbidden.indexOf(name) < 0) {
             if (score > max_score) {
@@ -271,7 +271,6 @@ function processResponse(response) {
     }
     return max_animal;
 }
-
 
 function rekogPromise(bucket, key, confidence) {
     var rekognition = new AWS.Rekognition();
@@ -285,9 +284,7 @@ function rekogPromise(bucket, key, confidence) {
         MinConfidence: confidence || 80
     };
     
-    return new Promise((resolve, reject) => {
-        console.log("Calling AWS detectLabels");
-        
+    return new Promise((resolve, reject) => {        
         rekognition.detectLabels(params, (err, response) => {
             if (err) reject(err);
             else resolve(response);

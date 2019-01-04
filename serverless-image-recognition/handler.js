@@ -172,11 +172,10 @@ module.exports.fbverify = async(event, context, callback) => {
 };
 
 /**
-    Processes an image for the FB messenger bot
-    Takes in a webhook event, gets image, passes into
-    rekognition, and responds
+    Uploads an image for the FB messenger bot
+    Takes in a webhook event, gets image, uploads to S3
 */
-module.exports.fbProcessImage = async(event, context) => {
+module.exports.fbUploadImage = async(event, context) => {
     console.log(event['body'])
     var body = JSON.parse(event['body'])
     
@@ -184,12 +183,25 @@ module.exports.fbProcessImage = async(event, context) => {
     if (body['object'] === "page") {
         var message = body['entry'][0]['messaging'][0];
         var sender = message['sender']['id']
-        var text = message['message']['text']
         
         //if there's an image attachment
-        if (message['message']['attachments']) {
+        if (message['message']['attachments'] && message['message']['attachments'][0]['type'] === 'image') {
+            var img_url = message['message']['attachments'][0]['payload']['url']
+            console.log(img_url)
+            
+            //do get request and s3 upload in one
+            var options = {
+                uri: img_url,
+                encoding: null
+            };
+            const rq = util.promisify(request)
+            var resp = await rq(options)
+            
+            //prepends the name with 'tw***' to identify this as a photo uploaded from a tweet
+            await putObjPromise(resp.body, "tw***" + sender, "jpg", "twitter")
+            
+            //respond
             await fbmessage(sender, "thanks for the image")
-            console.log("Sent message in response to image")
         }
         
         return {

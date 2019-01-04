@@ -39,8 +39,8 @@ functions:
       - http:
           method: get
           path: /fbverify
-  fbProcessImage:
-    handler: handler.fbProcessImage
+  fbUploadImage:
+    handler: handler.fbUploadImage
     events:
       - http:
           method: post

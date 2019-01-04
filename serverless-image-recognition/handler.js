@@ -22,12 +22,15 @@ function statusUpdate(statuss = 'Hello World!') {
 *   Puts <data> named <name> of type <filetype> to bucketofanimals
 *   as a promise
 */
-function putObjPromise(data, name, filetype) {
+function putObjPromise(data, name, filetype, source) {
     var bucket = new AWS.S3();
     var params = {
         Body: data,
         Bucket: 'bucketofanimals',
-        Key: name + '.' + filetype
+        Key: name + '.' + filetype, 
+        Metadata: {
+            source: source
+        }
     }
     return new Promise((resolve, reject) => {
         console.log("Putting an image to S3");
@@ -76,7 +79,9 @@ module.exports.tweet = async (event, context) => {
             };
             const rq = util.promisify(request)
             var resp = await rq(options)
-            await putObjPromise(resp.body, parsed['tweet_create_events'][0]['user']['screen_name'], "jpg")
+            
+            //prepends the name with 'tw***' to identify this as a photo uploaded from a tweet
+            await putObjPromise(resp.body, "tw***" + parsed['tweet_create_events'][0]['user']['screen_name'], "jpg", "twitter")
 
         } else {
             console.log("Tweet had no photo, doing nothing")
@@ -110,7 +115,7 @@ module.exports.verify = async (event, context) => {
 *   Image's s3:putObject response passed into event
 */
 module.exports.processImage = async(event, context) => {
-
+    
     var key = event['Records'][0]['s3']['object']['key']
     
     //pass into rekognition
@@ -122,7 +127,12 @@ module.exports.processImage = async(event, context) => {
 
     //can hardcode as jpg since all images are uploaded as jpgs
     var handle = key.replace(".jpg", "")
-    await statusUpdate("Thanks for the image of a " + animal + " @" + handle + "\n\n" + new Date())   
+    
+    //if image from twitter
+    if (key.indexOf("tw***") >= 0) {
+        handle = handle.replace("tw***", "")
+        await statusUpdate("Thanks for the image of a " + animal + " @" + handle + "\n\n" + new Date()) 
+    }
 };
 
 /**

@@ -132,6 +132,9 @@ module.exports.processImage = async(event, context) => {
     if (key.indexOf("tw***") >= 0) {
         handle = handle.replace("tw***", "")
         await statusUpdate("Thanks for the image of a " + animal + " @" + handle + "\n\n" + new Date()) 
+    } else if (key.indexOf("fb***") >= 0) {
+        handle = handle.replace("fb***", "")
+        await fbmessage(handle, "thanks for the image of a " + animal)
     }
 };
 
@@ -199,9 +202,6 @@ module.exports.fbUploadImage = async(event, context) => {
             
             //prepends the name with 'tw***' to identify this as a photo uploaded from a tweet
             await putObjPromise(resp.body, "fb***" + sender, "jpg", "twitter")
-            
-            //respond
-            await fbmessage(sender, "thanks for the image")
         }
         
         return {
@@ -251,7 +251,7 @@ function fbmessage(recipient_id, response_text) {
  */ 
 function processResponse(response) {
     //non-useful names that are common
-    var forbidden = ["Wildlife", "Animal"]
+    var forbidden = ["Wildlife", "Animal", "Mammal"]
     
     //find the max element of response by it's Confidence rating that isn't forbidden 
     var max_animal = ""

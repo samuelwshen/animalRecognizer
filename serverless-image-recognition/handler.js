@@ -198,7 +198,7 @@ module.exports.fbUploadImage = async(event, context) => {
             var resp = await rq(options)
             
             //prepends the name with 'tw***' to identify this as a photo uploaded from a tweet
-            await putObjPromise(resp.body, "tw***" + sender, "jpg", "twitter")
+            await putObjPromise(resp.body, "fb***" + sender, "jpg", "twitter")
             
             //respond
             await fbmessage(sender, "thanks for the image")

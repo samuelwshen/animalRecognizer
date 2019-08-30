@@ -14,8 +14,8 @@ const twitterClient = new Twitter(config);
  * @param {*} status
  * @return {Promise}
  */
-function statusUpdate(statuss = 'Hello World!') {
-    return twitterClient.post('statuses/update', { status: statuss });
+function statusUpdate(status = 'Hello World!') {
+    return twitterClient.post('statuses/update', { status });
 }
 
 /**
@@ -25,8 +25,8 @@ function statusUpdate(statuss = 'Hello World!') {
 *   Unit testable, get image data from a live image URL, manually check upload on S3
 */
 function putObjPromise(data, name, filetype) {
-    var bucket = new AWS.S3();
-    var params = {
+    const bucket = new AWS.S3();
+    const params = {
         Body: data,
         Bucket: 'bucketofanimals',
         Key: name + '.' + filetype, 

@@ -112,7 +112,7 @@ module.exports.processImage = async(event, context) => {
     //pass into rekognition
     const labels = await rekogPromise("bucketofanimals", key, 80);
     
-    //find and tweet animal name
+    //find animal name
     const animal = processResponse(labels);
 
     //can hardcode as jpg since all images are uploaded as jpgs
@@ -121,7 +121,12 @@ module.exports.processImage = async(event, context) => {
     //if image from twitter
     if (key.indexOf("tw***") >= 0) {
         handle = handle.replace("tw***", "")
-        await statusUpdate("Thanks for the image of a " + animal + " @" + handle + "\n\n" + new Date()) 
+        const date = new Date();
+        if (animal !== 'not-animal') {
+            await statusUpdate(`Thanks for the image of a ${animal} @${handle} \n\n ${date}`);
+        } else {
+            await statusUpdate(`I\'m not sure that\'s an animal @${handle}\n\n${date}`);
+        }
     } else if (key.indexOf("fb***") >= 0) {
         handle = handle.replace("fb***", "")
         await fbmessage(handle, "thanks for the image of a " + animal)
@@ -253,6 +258,7 @@ function processResponse(response) {
     //find the max element of response by it's Confidence rating that isn't forbidden 
     let max_animal = "";
     let max_score = 0;
+    let is_animal = false;
     
     for (let index in response['Labels']) {
         const name = response['Labels'][index]['Name'];
@@ -264,6 +270,13 @@ function processResponse(response) {
                 max_score = score
             }
         }
+        if (name === 'Animal') {
+            is_animal = true;
+        }
+    }
+    //I don't like magic strings but this is the most elegant way to do this
+    if (!is_animal) {
+        return 'not-animal';
     }
     return max_animal;
 }
